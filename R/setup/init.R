@@ -11,17 +11,3 @@ use_package(purrr)
 use_package(sf)
 use_package(terra)
 
-## paths
-paths <- list()
-paths$dat <- list()
-paths$R <- list()
-
-paths$dat$src   <- "data/data-source"
-paths$dat$harmo <- "data/data-harmo"
-paths$dat$clean <- "data/data-clean"  
-
-paths$R$setup    <- "R/setup"
-paths$R$sampling <- "R/sampling"
-paths$R$user     <- "R/user"
-paths$R$report   <- "R/reporting"
-
