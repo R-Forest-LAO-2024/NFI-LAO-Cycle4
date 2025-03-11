@@ -5,7 +5,9 @@ use_package <- function(.pkg_name) {
   library(pkg_name, character.only = T, quietly = TRUE)
 }
 
+use_package(readr)
 use_package(dplyr)
+use_package(stringr)
 use_package(ggplot2)
 use_package(purrr)
 use_package(sf)
