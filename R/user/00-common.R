@@ -1,12 +1,5 @@
 
 ## Functions ####
-## + Convert system time to specific time zone ####
-local_time <- function(tz) {
-  
-  tt <- Sys.time()
-  attr(tt,"tzone") <- tz
-  tt
-}
 
 ## + Make plot circles in ggplots ####
 gg_showplot <- function(center, vec_radius, n){

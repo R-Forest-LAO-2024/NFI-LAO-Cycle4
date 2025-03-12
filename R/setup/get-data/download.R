@@ -1,36 +1,70 @@
 
+## Initiate list to store temporary objects
+tmp <- list()
 
-## Remove CSV files from source
-unlink(list.files(path$dat$src, full.names = T, pattern = "\\.csv"))
-
-## Clean current zipped data
-if (usr$data_old_clean) {
-  walk(path$dat[! names(path$dat) == "parent"], function(x) unlink(list.files(x, full.names = T, pattern = "\\.zip")))
-}
 
 ## Connect to ONA and download
+tmp$get <- httr::GET("https://api.ona.io/api/v1/data/793500.csv", httr::authenticate("fipdlaos", rstudioapi::askForSecret("ONA password")))
 
-## ++ Code for connecting and download ++
+if (tmp$get$status_code == 200) {
+
+  ## get data in table format
+  tmp$content <- httr::content(tmp$get, type = "text/csv")
+  #write_csv(tmp$content, file.path(path$dat$src, "test.csv"))
+  
+  ## !!! The data is spread over thds of columns to as one row is one treeplot.
+  
+  ## Extracting tree_nest1
+  tmp$tree_nest1 <- tmp$content |>
+    select(`_id`, `_uuid`, `plot_info/plot_code_nmbr`, `plot_info/sub_plot`, starts_with("survey/measure/tree_data_nest1/tree_data_nest1_rep"))
+
+  tmp$new_names <- names(tmp$tree_nest1) |>
+    str_remove("survey/measure/tree_data_nest1/") |>
+    str_replace("\\[", "___") |>
+    str_replace("\\]/", "___") |>
+    str_remove("tree_data_nest1_rep")
+  
+  names(tmp$tree_nest1) <- tmp$new_names
+  
+  tree_nest1_init <- tmp$tree_nest1 |>
+    mutate(across(starts_with("___"), as.character)) |>
+    pivot_longer(
+      cols = starts_with("___"), cols_vary = "slowest",
+      names_to = c("set", ".value"), 
+      names_pattern = "___(.*)___(.*)"
+      ) |>
+    arrange(`plot_info/plot_code_nmbr`, `plot_info/sub_plot`) |>
+    filter(`tree_data_basic_nest1/t_nb_nest1` != "n/a")
+  
+}
+
+
+
+
+## Update log
+
+
+
 
 ## ++ Code for renaming download with timestamp ++
-src_timestamp$dl <- local_time(usr$time_zone)
-
+tmp$dl_time <- local_time(usr$time_zone)
 
 ## Extract latest zip
-has_data$latest_dl <- sort(list.files(path$dat$src))[1]
+tmp$latest_dl <- sort(list.files(path$dat$src, pattern = "\\.zip"))[1]
 
 unzip(
-  zipfile = file.path(path$dat$src, latest_dl),
+  zipfile = file.path(path$dat$src, tmp$latest_dl),
   exdir = file.path(path$dat$src)
 )
 
-src_timestamp$unzip <- local_time(usr$time_zone)
+tmp$unzip_time <- local_time(usr$time_zone)
 
-## Create a download report
-data_dl_report <- paste0(
-  "Data downloaded at ", src_timestamp$dl, 
-  ", with file name ",  has_data$latest_dl,
-  ", and unzipped at ", src_timestamp$unzip, "."
-)
-writeLines(data_dl_report, file.path(path$dat$src, "Download details.txt"))
+## Update log
+write_lines(
+  paste0(
+    tmp$dl_time, ": Data downloaded with file name ",  tmp$latest_dl, " \n", 
+    tmp$unzip_time, ": Data unzipped"
+    ),
+    "log.txt" , append = T
+  )
 

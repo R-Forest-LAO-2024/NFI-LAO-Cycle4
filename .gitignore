@@ -49,7 +49,6 @@ po/*~
 rsconnect/
 
 ## Custom gitignore
-data/data-source
 results
 data
 .DS_Store

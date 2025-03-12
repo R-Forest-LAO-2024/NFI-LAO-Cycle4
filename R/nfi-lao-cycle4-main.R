@@ -1,13 +1,22 @@
 
-source(file.path(path$R$setup, "init.R"), local = T)
+## User inputs ####
 
-source(file.path(path$R$setup, "paths.R"), local = T)
+usr <- list()
+usr$download_new <- FALSE
+usr$clean_csv    <- TRUE
+usr$clean_zip    <- FALSE
+usr$time_zone    <- "Asia/Bangkok"
 
-source(file.path(path$R$setup, "sampling.R"), local = T)
+## Run analysis ####
 
-source(file.path(path$R$user, "00-common.R"), local = T)
+source(file.path("R/setup/init.R"), local = T)
 
-source(file.path(path$R$user, "00-user-inputs.R"), local = T)
+source(file.path("R/setup/paths.R"), local = T)
 
-source(file.path(path$R$setup, "get-data.R"), local = T)
+source(file.path("R/setup/sampling.R"), local = T)
+
+source(file.path("R/setup/get-data.R"), local = T)
+
+source(file.path("R/calc/00-common.R"), local = T)
+
 
