@@ -25,15 +25,16 @@ use_package(terra)
 
 
 ## Get time in UTC
-local_time <- function(tz) {
+local_time <- function(tz, .spe_chr = T, .show_tz = T) {
   
   tt <- Sys.time()
   attr(tt,"tzone") <- tz
   tt <- str_remove(as.character(tt), "\\..*")
-  paste0(tt, " ", tz)
+  if (.show_tz) tt <- paste0(tt, " ", tz)
+  if (!.spe_chr) tt <- tt |> str_replace_all(":|/", "-") |> str_replace_all(" ", "_")
+  tt
   
 }
-
 
 ## Initiate log
 write_lines(

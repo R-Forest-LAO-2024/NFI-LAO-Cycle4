@@ -1,6 +1,9 @@
 
-## Initiate objects
-check_data <- list()
+## Initiate list to store temporary objects
+tmp <- list()
+
+## Load helpers
+source("R/setup/get-data/helpers.R", local = T)
 
 ## Remove old zip files if required by user
 if (usr$clean_zip) {
@@ -8,7 +11,7 @@ if (usr$clean_zip) {
 }
 
 ## Remove all files if required by user
-if (usr$download_new | usr$clean_csv) {
+if (usr$get_new) {
   
   unlink(list.files(path$dat$src, full.names = T, pattern = "\\.csv"))
   unlink(list.files(path$dat$harmo, full.names = T, pattern = "\\.csv"))
@@ -16,7 +19,24 @@ if (usr$download_new | usr$clean_csv) {
   
 }
 
+## Get source data from server if auto
+if (usr$get_new & usr$get_auto) {
+  source("R/setup/get-data/download_ona.R", local = T)
+  usr$get_ext <- "csv"
+}
 
+## Get ext if manual
+if (!usr$get_auto) usr$get_ext <- str_remove(usr$get_filename, ".*\\.")
+
+## Create entity based CSV if data come from master CSV
+if (usr$get_ext == "csv") {
+  
+  tmp$src_csv <- read_csv(file.path(path$dat$src, usr$get_filename))
+  
+  
+  
+}
+  
 ## Download and unzip ####
 
 # check_data$src_zip <- list.files(path$dat$src, pattern = "\\.zip")
