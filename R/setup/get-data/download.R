@@ -3,42 +3,110 @@
 tmp <- list()
 
 
-## Connect to ONA and download
-tmp$get <- httr::GET("https://api.ona.io/api/v1/data/793500.csv", httr::authenticate("fipdlaos", rstudioapi::askForSecret("ONA password")))
+## Connect to ONA
+tmp$get <- httr::GET(paste0("https://api.ona.io/api/v1/data/", rstudioapi::askForSecret("ONA Form ID code"), ".csv"))
 
+
+## Fetch data, make all character and remove special characters in col name
 if (tmp$get$status_code == 200) {
 
-  ## get data in table format
-  tmp$content <- httr::content(tmp$get, type = "text/csv")
-  #write_csv(tmp$content, file.path(path$dat$src, "test.csv"))
-  
-  ## !!! The data is spread over thds of columns to as one row is one treeplot.
-  
-  ## Extracting tree_nest1
-  tmp$tree_nest1 <- tmp$content |>
-    select(`_id`, `_uuid`, `plot_info/plot_code_nmbr`, `plot_info/sub_plot`, starts_with("survey/measure/tree_data_nest1/tree_data_nest1_rep"))
-
-  tmp$new_names <- names(tmp$tree_nest1) |>
-    str_remove("survey/measure/tree_data_nest1/") |>
-    str_replace("\\[", "___") |>
-    str_replace("\\]/", "___") |>
-    str_remove("tree_data_nest1_rep")
-  
-  names(tmp$tree_nest1) <- tmp$new_names
-  
-  tree_nest1_init <- tmp$tree_nest1 |>
-    mutate(across(starts_with("___"), as.character)) |>
-    pivot_longer(
-      cols = starts_with("___"), cols_vary = "slowest",
-      names_to = c("set", ".value"), 
-      names_pattern = "___(.*)___(.*)"
-      ) |>
-    arrange(`plot_info/plot_code_nmbr`, `plot_info/sub_plot`) |>
-    filter(`tree_data_basic_nest1/t_nb_nest1` != "n/a")
+  tmp$content <- httr::content(tmp$get, type = "text/csv") |> 
+    mutate(across(everything(), as.character)) |>
+    rename_with(.cols = everything(), str_replace_all, "/", "_") |>
+    rename_with(.cols = everything(), str_replace_all, "\\[|\\]", "__") |>
+    rename_with(.cols = everything(), str_replace_all, "___", "__") |>
+    rename_with(.cols = starts_with("_"), str_replace, "_", "ONA_")
   
 }
 
+if (is.null(tmp$content)) stop("Couldn't download data from API") 
 
+## !!! The data is spread over a thd columns as one row is one treeplot, 
+##     tree info is o new column for each tree.
+
+## Extract tables
+treeplot_init <- tmp$content |> 
+  select(
+    "start", "end", "today", "deviceid", 
+    starts_with("plot_info"), 
+    starts_with("plot_GPS"),
+    starts_with("access"), 
+    starts_with("survey_mngmt_plot"), 
+    starts_with("survey_measure_slope"),
+    "button_end1",
+    "rec_time_end",
+    "end_survey",
+    "time3",
+    "survey_time",
+    "remarks",
+    starts_with("meta"),
+    starts_with("ONA_") 
+  )
+
+treeplot_lc_init <- tmp$content |>
+  select(
+    ONA_id, plot_info_plot_code_nmbr, plot_info_sub_plot,
+    starts_with("survey_lc_"),
+    starts_with("survey_measure_canopy"),
+    "survey_nf_terminate"
+  )
+
+tree_nest1_init <- fct_extract_from_csv(
+  .httr_csv_content = tmp$content, 
+  .pattern = "survey_measure_tree_data_nest1_tree_data_nest1_rep"
+)
+tree_nest2_init <- fct_extract_from_csv(
+  .httr_csv_content = tmp$content, 
+  .pattern = "survey_measure_tree_data_nest2_tree_data_nest2_rep"
+)
+
+sapling_init <- fct_extract_from_csv(
+  .httr_csv_content = tmp$content, 
+  .pattern = "survey_measure_sapling_data_rep"
+)
+
+ldw_init <- fct_extract_from_csv(
+  .httr_csv_content = tmp$content, 
+  .pattern = "survey_measure_ldw_transect_ldw_data_rep"
+)
+
+ntfp_init <- fct_extract_from_csv(
+  .httr_csv_content = tmp$content, 
+  .pattern = "survey_measure_ntfp_ntfp_rep"
+)
+
+seedling_init <- tmp$content |>
+  select(
+    ONA_id, plot_info_plot_code_nmbr, plot_info_sub_plot,
+    starts_with("survey_measure_bamboo")
+  )
+
+bamboo_init <- tmp$content |>
+  select(
+    ONA_id, plot_info_plot_code_nmbr, plot_info_sub_plot,
+    starts_with("survey_measure_seedling_data")
+  )
+
+test <- tmp$content_left <- tmp$content |> 
+  select(
+    -starts_with("plot_info"), 
+    -starts_with("plot_GPS"),
+    -starts_with("access"), 
+    -starts_with("meta"),
+    -starts_with("ONA_"),
+    -starts_with("survey_mngmt_plot"),
+    -starts_with("survey_measure_slope"),
+    -starts_with("survey_lc_"),
+    -starts_with("survey_measure_canopy"),
+    -starts_with("survey_measure_tree_data_nest1_tree_data_nest1_rep"),
+    -starts_with("survey_measure_tree_data_nest2_tree_data_nest2_rep"),
+    -starts_with("survey_measure_sapling_data_rep"),
+    -starts_with("survey_measure_ldw_transect_ldw_data_rep"),
+    -starts_with("survey_measure_ntfp_ntfp_rep"),
+    
+  )
+
+names(tmp$content_left)
 
 
 ## Update log
