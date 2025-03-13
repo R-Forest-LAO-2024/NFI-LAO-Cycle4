@@ -5,8 +5,7 @@ usr <- list()
 usr$get_new      <- FALSE
 usr$get_auto     <- TRUE
 usr$get_filename <- "4th_NFI_2025_02_10_csv.zip" ## if method is manual, specify file name 
-usr$clean_csv <- TRUE
-usr$clean_zip <- FALSE
+usr$clean_all <- FALSE
 usr$time_zone <- "Asia/Bangkok"
 
 ## Run analysis ####

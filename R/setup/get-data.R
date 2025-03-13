@@ -1,38 +1,49 @@
 
-## Initiate list to store temporary objects
-tmp <- list()
-
-## Load helpers
-source("R/setup/get-data/helpers.R", local = T)
-
-## Remove old zip files if required by user
-if (usr$clean_zip) {
-  unlink(list.files(path$dat$src, full.names = T, pattern = "\\.zip"))
-}
-
-## Remove all files if required by user
+## RUN ONLY IF USER REQUEST NEW DATA
 if (usr$get_new) {
   
-  unlink(list.files(path$dat$src, full.names = T, pattern = "\\.csv"))
+  ## Initiate list to store source data
+  data_init <- list()
+  
+  ## Load helpers
+  source("R/setup/get-data/helpers.R", local = T)
+  
+  ## REMOVE EXISTING FILES ####
+  
+  ## Remove all harmo and clean files
   unlink(list.files(path$dat$harmo, full.names = T, pattern = "\\.csv"))
   unlink(list.files(path$dat$clean, full.names = T, pattern = "\\.csv"))
   
+  ## Clean source files if requested
+  if (usr$clean_all) {
+    unlink(list.files(path$dat$src, full.names = T), recursive = T)
+  }
+  
+  ## GET INITIAL DATA ####
+  
+  ## Get new file, download or unzip if necessary
+  if (usr$get_auto) {
+    source("R/setup/get-data/download_ona.R", local = T)
+  } else if (!usr$get_auto) {
+    source("R/setup/get-data/read_manual.R", local = T)
+  }
+  
+  ## If file is CSV, need to make entities
+  if ("master_csv" %in% names(data_init)) {
+    source("R/setup/get-data/split-master-csv.R", local = T)
+  }
+  
 }
 
-## Get source data from server if auto
-if (usr$get_new & usr$get_auto) {
-  source("R/setup/get-data/download_ona.R", local = T)
-  usr$get_ext <- "csv"
-}
 
-## Get ext if manual
-if (!usr$get_auto) usr$get_ext <- str_remove(usr$get_filename, ".*\\.")
+
+
+
 
 ## Create entity based CSV if data come from master CSV
-if (usr$get_ext == "csv") {
+if (usr$get_auto | usr$get_ext == "csv") {
   
-  tmp$src_csv <- read_csv(file.path(path$dat$src, usr$get_filename))
-  
+  source("R/setup/get-data/split_master_csv.R")
   
   
 }

@@ -1,48 +1,24 @@
+
+## Initiate list to store temporary objects
+tmp <- list()
+
 ## !!! The data is spread over a thd columns as one row is one treeplot, 
-##     tree info is o new column for each tree.
+##     tree info is in new column for each tree.
 
 ## Extract tables at treeplot level
-data_src$treeplot_init <- tmp$content |> 
+data_init$treeplot_init <- data_init$master_csv |> 
   select(
-    "start", "end", "today", "deviceid", 
-    starts_with("plot_info"), 
-    starts_with("plot_GPS"),
-    starts_with("access"), 
-    starts_with("survey_mngmt_plot"), 
-    starts_with("survey_measure_slope"),
-    "button_end1",
-    "rec_time_end",
-    "end_survey",
-    "time3",
-    "survey_time",
-    "remarks",
-    starts_with("meta"),
-    starts_with("ONA_") 
-  )
-
-data_src$tp_lc_init <- tmp$content |>
-  select(
-    ONA_id, plot_info_plot_code_nmbr, plot_info_sub_plot,
-    starts_with("survey_lc_"),
-    starts_with("survey_measure_canopy"),
-    "survey_nf_terminate"
-  )
-
-data_src$tp_bamboo_init <- tmp$content |>
-  select(
-    ONA_id, plot_info_plot_code_nmbr, plot_info_sub_plot,
-    starts_with("survey_measure_bamboo")
-  )
-
-data_src$tp_seedling_init <- tmp$content |>
-  select(
-    ONA_id, plot_info_plot_code_nmbr, plot_info_sub_plot,
-    starts_with("survey_measure_seedling_data")
-  )
+    -starts_with("survey_measure_ldw_transect_ldw_data_rep.csv"),
+    -starts_with("survey_measure_ntfp_ntfp_rep"),
+    -starts_with("survey_measure_sapling_data_rep"),
+    -starts_with("survey_measure_tree_data_nest1_tree_data_nest1_rep"),
+    -starts_with("survey_measure_tree_data_nest2_tree_data_nest2_rep")
+  ) |>
+  mutate(ONA_index = row_number())
 
 ## Extract data that require conversion to long table
-data_src$tree_nest1_init <- fct_extract_from_csv(
-  .httr_csv_content = tmp$content, 
+data_init$tree_init1 <- fct_extract_from_csv(
+  .httr_csv_content = data_init$master_cs, 
   .pattern = "survey_measure_tree_data_nest1_tree_data_nest1_rep"
 )
 

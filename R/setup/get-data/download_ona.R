@@ -24,10 +24,10 @@ tmp_ona$time <- local_time(usr$time_zone, .show_tz = F, .spe_chr = F)
 tmp_ona$file_name <- paste0("ONAapi_", tmp_ona$time, ".csv")
 
 ## Write file
-write_csv(tmp$content, file.path(path$dat$src, tmp$file_name))
+write_csv(tmp_ona$content, file.path(path$dat$src, tmp_ona$file_name))
 
 ## pass data to main list
-usr$get_filename <- tmp_ona$file_name
+data_init$master_csv <- tmp_ona$content
 
 ## Update log
 write_lines(
@@ -37,5 +37,5 @@ write_lines(
   "log.txt" , append = T
 )
 
-## Clean tmp
+## Clean tmp_ona
 rm(tmp_ona)
