@@ -2,27 +2,27 @@
 fct_extract_from_csv <- function(.httr_csv_content, .pattern) {
   
   ## !!! FOR TESTING ONLY
-  # .httr_csv_content = tmp$content
-  # .pattern = "survey_measure_tree_data_nest1_tree_data_nest1_rep"
+  # .httr_csv_content = data_init$master_csv
+  # .pattern = "survey__reference_trees__measure__tree_data_nest1__tree_data_nest1_rep"
   ## !!!
   
   if (!is.data.frame(.httr_csv_content)) stop(".httr_csv_content should be a data frame")
-  if (!is.character(.pattern)) stop(".pattern should be a character vector of size 1")
-  if (length(.pattern) != 1)   stop(".pattern should be a character vector of size 1")
+  if (!is.character(.pattern)) stop(".pattern should be a character vector")
+  if (length(.pattern) != 1)   stop(".pattern should be of size 1")
   
   out_df <- .httr_csv_content |>
-    select(
-      ONA_id, ONA_uuid, plot_info_plot_code_nmbr, plot_info_sub_plot, 
-      starts_with(.pattern)
-    ) |>
-    rename_with(.cols = starts_with(.pattern), str_extract, "__.*") |>
+    select(ONA_parent_index = ONA_index, starts_with(.pattern)) |>
+    rename_with(.cols = starts_with(.pattern), str_extract, "___.*") |>
     pivot_longer(
-      cols = starts_with("__"), 
+      cols = starts_with("___"), 
       cols_vary = "slowest",
-      names_to = c("ONA_tree_no", ".value"), 
-      names_pattern = "__(.*[0-9])__(.*)"
+      names_to = c("ONA_no", ".value"), 
+      names_pattern = "___(.*[0-9])___(.*)"
     ) |>
-    arrange(plot_info_plot_code_nmbr, plot_info_sub_plot, ONA_tree_no)
+    mutate(ONA_no = as.numeric(ONA_no)) |>
+    arrange(ONA_parent_index, ONA_no) |>
+    mutate(ONA_index = row_number()) |>
+    select(ONA_parent_index, ONA_index, ONA_no, everything())
   
   out_df
   

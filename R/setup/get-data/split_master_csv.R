@@ -5,21 +5,42 @@ tmp <- list()
 ## !!! The data is spread over a thd columns as one row is one treeplot, 
 ##     tree info is in new column for each tree.
 
-## Extract tables at treeplot level
+## Get table names for main entities
+tmp$tab_names <- names(data_init$master_csv) |>
+  str_subset("ldw_data_rep|ntfp_rep|sapling_data_rep|tree_data_nest1_rep|tree_data_nest2_rep") |>
+  str_remove("___.*") |>
+  unique()
+
+tmp$tab_names_new <- tmp$tab_names |>
+  str_replace(str_subset(tmp$tab_names, "tree_data_nest1"), "tree_init1") |>
+  str_replace(str_subset(tmp$tab_names, "tree_data_nest2"), "tree_init2") |>
+  str_replace(str_subset(tmp$tab_names, "sapling"), "sapling_init") |>
+  str_replace(str_subset(tmp$tab_names, "ldw"), "ldw_init") |>
+  str_replace(str_subset(tmp$tab_names, "ntfp"), "ntfp")
+
+## Extract table at treeplot level
 data_init$treeplot_init <- data_init$master_csv |> 
-  select(
-    -starts_with("survey_measure_ldw_transect_ldw_data_rep.csv"),
-    -starts_with("survey_measure_ntfp_ntfp_rep"),
-    -starts_with("survey_measure_sapling_data_rep"),
-    -starts_with("survey_measure_tree_data_nest1_tree_data_nest1_rep"),
-    -starts_with("survey_measure_tree_data_nest2_tree_data_nest2_rep")
-  ) |>
-  mutate(ONA_index = row_number())
+  select(-starts_with(tmp$tab_names))
 
 ## Extract data that require conversion to long table
+tmp$data_init <- map(tmp$tab_names, function(x){
+  tt <- fct_extract_from_csv(
+    .httr_csv_content = data_init$master_cs, 
+    .pattern = x
+  ) 
+  
+  vars <- names(tt) |> str_subset("ONA_", negate = T)
+  
+  tt |> drop_na(all_of(vars))
+  
+})
+
+write_csv(tt, "data/test_sap.csv")
+
+
 data_init$tree_init1 <- fct_extract_from_csv(
   .httr_csv_content = data_init$master_cs, 
-  .pattern = "survey_measure_tree_data_nest1_tree_data_nest1_rep"
+  .pattern = "survey_reference_trees_measure_tree_data_nest1_tree_data_nest1_rep"
 )
 
 data_src$tree_nest2_init <- fct_extract_from_csv(

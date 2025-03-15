@@ -10,9 +10,9 @@ if (tmp_ona$get$status_code == 200) {
 
   tmp_ona$content <- httr::content(tmp_ona$get, type = "text/csv") |> 
     mutate(across(everything(), as.character)) |>
-    rename_with(.cols = everything(), str_replace_all, "/", "_") |>
-    rename_with(.cols = everything(), str_replace_all, "\\[|\\]", "__") |>
-    rename_with(.cols = everything(), str_replace_all, "___", "__") |>
+    rename_with(.cols = everything(), str_replace_all, "/", "__") |>
+    rename_with(.cols = everything(), str_replace_all, "\\[|\\]", "___") |>
+    rename_with(.cols = everything(), str_replace_all, "_____", "___") |>
     rename_with(.cols = starts_with("_"), str_replace, "_", "ONA_")
   
 }

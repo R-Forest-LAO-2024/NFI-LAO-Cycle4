@@ -3,8 +3,8 @@
 
 usr <- list()
 usr$get_new      <- FALSE
-usr$get_auto     <- TRUE
-usr$get_filename <- "4th_NFI_2025_02_10_csv.zip" ## if method is manual, specify file name 
+usr$get_auto     <- FALSE
+usr$get_filename <- "4th_NFI_up to2025_02_24_withpath.csv" ## "4th_NFI_2025_02_10_csv.zip" ## if method is manual, specify file name 
 usr$clean_all <- FALSE
 usr$time_zone <- "Asia/Bangkok"
 

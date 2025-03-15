@@ -23,9 +23,9 @@ if (usr$get_new) {
   
   ## Get new file, download or unzip if necessary
   if (usr$get_auto) {
-    source("R/setup/get-data/download_ona.R", local = T)
+    source("R/setup/get-data/download-ona.R", local = T)
   } else if (!usr$get_auto) {
-    source("R/setup/get-data/read_manual.R", local = T)
+    source("R/setup/get-data/read-manual.R", local = T)
   }
   
   ## If file is CSV, need to make entities

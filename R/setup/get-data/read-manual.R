@@ -15,7 +15,7 @@ if (tmp_read$get_ext == "zip") {
   ## Unzip file
   unzip(
     zipfile = file.path(path$dat$src, usr$get_filename),
-    exdir = tmp$dir_path
+    exdir = tmp_read$dir_path
   )
   
   ## List data and create names
@@ -31,9 +31,7 @@ if (tmp_read$get_ext == "zip") {
   ## Read data
   tmp_read$data_init <- map(tmp_read$list_csv, function(x) {
     tt <- read_csv(x, col_types = cols(.default = "c")) |>
-      rename_with(.cols = everything(), str_replace_all, "/", "_") |>
-      rename_with(.cols = everything(), str_replace_all, "\\[|\\]", "__") |>
-      rename_with(.cols = everything(), str_replace_all, "___", "__") |>
+      rename_with(.cols = everything(), str_replace_all, "/", "__") |>
       rename_with(.cols = starts_with("_"), str_replace, "_", "ONA_")
     })
   
@@ -43,15 +41,29 @@ if (tmp_read$get_ext == "zip") {
   ## Transfer to data_init
   data_init <- append(data_init, tmp_read$data_init)
   
-} else if (usr$get_ext == "csv") {
+} else if (tmp_read$get_ext == "csv") {
   
   ## Read data directly into data_init
   data_init$master_csv <- read_csv(
-    file.path(path$dat$src, usr$get_filename), 
-    col_types = cols(.default = "c")
-  )
+    file.path(path$dat$src, usr$get_filename), col_types = cols(.default = "c"), na = "n/a"
+    ) |>
+    rename_with(.cols = everything(), str_replace_all, "/", "__") |>
+    rename_with(.cols = everything(), str_replace_all, "\\[|\\]", "___") |>
+    rename_with(.cols = everything(), str_replace_all, "_____", "___") |>
+    rename_with(.cols = starts_with("_"), str_replace, "_", "ONA_") |>
+    mutate(ONA_index = row_number())
   
 }
+
+## Update log
+write_lines(
+  paste0(
+    local_time("UTC"), ": Read data from manual download \n",
+    "data type: ", tmp_read$get_ext, "\n",
+    "data_init now contains: ", paste(names(data_init), collapse = ", "), "\n\n"
+  ),
+  "log.txt" , append = T
+)
 
 ## Clean tmp elements
 rm(tmp_read)
